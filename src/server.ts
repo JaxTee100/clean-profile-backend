@@ -8,13 +8,13 @@ import { connectRedis } from './config/redisClient';
 
 dotenv.config();
 const app = express();
-const port = process.env.PORT || 3001;
+const port = process.env.PORT;
 
 
 
 // ✅ Correct CORS config for local frontend at localhost:3000
 app.use(cors({
-  origin: process.env.ORIGIN || 'http://localhost:3000',
+  origin: process.env.ORIGIN,
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'], // header names only
