@@ -1,12 +1,22 @@
 import { Pool } from 'pg';
 import dotenv from 'dotenv';
-import { ResourceNotFoundError } from '../../utils/CustomErrors';
 dotenv.config();
 
-const db = new Pool({
-    connectionString: process.env.DATABASE_URL,
-});
+const isProduction = process.env.NODE_ENV === 'production';
 
+const db = new Pool({
+  connectionString: process.env.DATABASE_URL,
+  ssl: isProduction ? { rejectUnauthorized: false } : false, // 🔑
+});
+db.connect()
+  .then(client => {
+    console.log("✅ Database connected successfully");
+    client.release(); // release the client back to the pool
+  })
+  .catch(err => {
+    console.error("❌ Database connection failed:", err.message);
+    process.exit(1); // exit the app if DB connection fails
+  });
 const ProjectDAO = {
     async create(project_name: string, category: string, description: string, technologies: string[], link: string) {
         const result = await db.query(
@@ -20,6 +30,7 @@ const ProjectDAO = {
         const result = await db.query('SELECT * FROM project ORDER BY created_at DESC LIMIT $1 OFFSET $2',
       [limit, offset]
     );
+
     //avoid using business logic here
         return result.rows;
     },

@@ -1,4 +1,4 @@
-
+import { redis } from "../config/redisClient";
 import ProjectDAO from "../db/dao/projectDao";
 import { CreateProjectDto, UpdateProjectDto } from "../db/dto/projectDto";
 import { ResourceNotFoundError, ServiceError } from "../utils/CustomErrors";
@@ -16,35 +16,55 @@ const ProjectService = {
         if (!project) {
             throw new ServiceError("Project creation failed");
         }
-        return project
+
+        // Invalidate all project caches (both "all" and paginated)
+        await redis.del("projects:all");
+        console.log("⚡ Cache for all projects cleared");
+
+        return project;
     },
 
-    async getAllProjects(limit: number, offset: number) {
+   async getAllProjects(limit: number, offset: number) {
+    if (limit <= 0 || offset < 0) {
+        throw new ServiceError("Invalid pagination parameters");
+    }
 
-        if (limit <= 0 || offset < 0) {
-            throw new ServiceError("Invalid pagination parameters");
-        }
+    const cacheKey = `projects:${limit}:${offset}`;
 
+    // 1. Try cache
+    const cached = await redis.get(cacheKey);
+    if (cached) {
+        console.log("⚡ Projects served from Redis cache");
+        return JSON.parse(cached);
+        
+    }
+    console.log("❌ Cache Miss");
 
-        const [projects, total] = await Promise.all([
-            ProjectDAO.findAll(limit, offset),
-            ProjectDAO.getTotal()
-        ]);
+    // 2. Fetch from DB
+    const [projects, total] = await Promise.all([
+        ProjectDAO.findAll(limit, offset),
+        ProjectDAO.getTotal(),
+    ]);
 
-        if (!projects || projects.length === 0) {
-            throw new ResourceNotFoundError("No projects found");
-        }
+    if (!projects || projects.length === 0) {
+        throw new ResourceNotFoundError("No projects found");
+    }
 
-        const currentPage = Math.floor(offset / limit) + 1;
-        const totalPages = Math.ceil(total / limit);
+    // 3. Save to Redis with 60s TTL
+    await redis.set(cacheKey, JSON.stringify(projects), { EX: 60 });
+    console.log("✅ Cached projects under:", cacheKey);
 
-        return {
-            projects,
-            total,
-            currentPage,
-            totalPages
-        };
-    },
+    const currentPage = Math.floor(offset / limit) + 1;
+    const totalPages = Math.ceil(total / limit);
+
+    return {
+        projects,
+        total,
+        currentPage,
+        totalPages,
+    };
+}
+,
 
     async getAllProjectsForAdmin() {
         const projects = await ProjectDAO.findAllForAdmin();
@@ -53,31 +73,45 @@ const ProjectService = {
         }
         return projects;
     },
-    
+
     async getProjectById(id: number) {
+        const cacheKey = `project:${id}`;
+
+        const cached = await redis.get(cacheKey);
+        if (cached) {
+            console.log("⚡ Project served from Redis cache");
+            return JSON.parse(cached);
+        }
+
         const project = await ProjectDAO.findById(id);
         if (!project) {
-            throw new ResourceNotFoundError(`Project  not found`);
+            throw new ResourceNotFoundError(`Project not found`);
         }
+
+        await redis.set(cacheKey, JSON.stringify(project), { EX: 60 });
+        console.log("✅ Cached project under:", cacheKey);
+
         return project;
     },
 
     async updateProject(id: number, projectData: UpdateProjectDto) {
         const existing = await ProjectDAO.findById(id);
         if (!existing) {
-            throw new ResourceNotFoundError(`Project  not found`);
+            throw new ResourceNotFoundError(`Project not found`);
         }
-        console.log('existing', existing)
+
         const { project_name, category, description, technologies, link } = projectData;
         const update = {
             project_name: project_name ?? existing.project_name,
             category: category ?? existing.category,
             description: description ?? existing.description,
-            technologies: technologies ?? [technologies, ...existing.technologies],
+            technologies: technologies ?? [
+                ...(existing.technologies || []),
+                ...(technologies ? [technologies] : [])
+            ],
             link: link ?? existing.link,
             id
-        }
-
+        };
 
         const updatedProject = await ProjectDAO.update(
             id,
@@ -86,30 +120,37 @@ const ProjectService = {
             update.description,
             update.technologies,
             update.link
-
         );
+
         if (!updatedProject || updatedProject.length === 0) {
             throw new ServiceError("Project update failed");
         }
+
+        // Invalidate project cache
+        await redis.del(`project:${id}`);
+        console.log(`⚡ Cache for project:${id} cleared`);
+
         return updatedProject;
     },
 
     async removeProject(id: number) {
         const existing = await ProjectDAO.findById(id);
         if (!existing) {
-            throw new ResourceNotFoundError(`Project  not found`);
+            throw new ResourceNotFoundError(`Project not found`);
         }
+
         const deletedProject = await ProjectDAO.delete(id);
         if (!deletedProject || deletedProject.length === 0) {
             throw new ServiceError("Project deletion failed");
         }
+
+        // Invalidate caches
+        await redis.del(`project:${id}`);
+        await redis.del("projects:all");
+        console.log(`⚡ Cache cleared for project:${id} and projects:all`);
+
         return { message: "Project deleted successfully" };
-
     }
+};
 
-
-
-}
-
-
-export default ProjectService
+export default ProjectService;

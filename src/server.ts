@@ -1,10 +1,16 @@
+import dotenv from 'dotenv';
 import express, { Request, Response } from 'express';
 import { errorHandler } from './middleware/errorHandler';
 import projectRoutes from './routes/projectRoutes';
 import cors from 'cors';
+import { connectRedis } from './config/redisClient';
 
+
+dotenv.config();
 const app = express();
 const port = 3001;
+
+
 
 // ✅ Correct CORS config for local frontend at localhost:3000
 app.use(cors({
@@ -26,5 +32,6 @@ app.get('/', (req: Request, res: Response) => {
 });
 
 app.listen(port, () => {
+  connectRedis();
   console.log(`Server running at http://localhost:${port}`);
 });

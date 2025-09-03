@@ -33,12 +33,15 @@ const ProjectController = {
 
     async getAll(req: Request, res: Response) {
         try {
+            
             const limit = parseInt(req.query.limit as string, 10) || 10;
             const offset = parseInt(req.query.offset as string, 10) || 0;
 
             const projects = await ProjectService.getAllProjects(limit, offset);
+          
 
             const response = new SuccessResponse('Projects retrieved successfully');
+            
             response.addDataValues(projects);
             res.status(200).json(response);
         } catch (err) {
