@@ -26,6 +26,7 @@ const ProjectService = {
       console.log("⚡ Cache for all projects cleared");
     }
 
+    console.log('project created, no redis');
     return project;
   },
 
@@ -46,6 +47,8 @@ const ProjectService = {
       }
       console.log("❌ Cache Miss");
     }
+
+    console.log('fetching from db');
 
     // 2. Fetch from DB
     const [projects, total] = await Promise.all([

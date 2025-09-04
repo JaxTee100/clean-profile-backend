@@ -1,42 +1,45 @@
 import dotenv from "dotenv";
-import { createClient } from "redis";
+import { createClient, RedisClientType } from "redis";
 
 dotenv.config();
 
-let redis: ReturnType<typeof createClient> | null = null;
+let redis: RedisClientType | null = null;
 
 export async function connectRedis() {
-  try {
-    const client = createClient({
+  if (!process.env.REDIS_URL) {
+    console.warn("⚠️ No REDIS_URL found in environment, Redis will be disabled.");
+    return null;
+  }
+
+  if (!redis) {
+    redis = createClient({
       url: process.env.REDIS_URL,
       socket: {
-        tls: true, // needed for Upstash (rediss://)
         reconnectStrategy: (retries) => {
-          if (retries > 5) {
-            console.error("❌ Too many Redis retries, disabling Redis.");
-            return new Error("Redis connection failed");
-          }
-          return Math.min(retries * 100, 3000);
+          console.warn(`🔄 Redis reconnect attempt #${retries}`);
+          return Math.min(retries * 100, 3000); // backoff up to 3s
         },
       },
     });
 
-    client.on("error", (err) => {
-      console.error("⚠️ Redis Client Error:", err);
+    redis.on("error", (err) => {
+      console.error("❌ Redis Client Error:", err);
+      redis = null; // reset so next call can retry
     });
 
-    await client.connect();
-    console.log("✅ Connected to Redis successfully");
-
-    redis = client;
-    return redis;
-  } catch (error) {
-    console.error("⚠️ Redis not available, continuing without it.");
-    redis = null;
-    return null;
+    try {
+      await redis.connect();
+      console.log(`✅ Connected to Redis at ${process.env.REDIS_URL}`);
+    } catch (err) {
+      console.error("❌ Failed to connect to Redis:", err);
+      redis = null;
+    }
   }
+
+  return redis;
 }
 
-export function getRedis() {
-  return redis; // can be null if not connected
+// Always return a connected instance
+export function getRedis(): RedisClientType | null {
+  return redis;
 }
