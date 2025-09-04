@@ -1,156 +1,174 @@
-import { redis } from "../config/redisClient";
+import { getRedis } from "../config/redisClient";
 import ProjectDAO from "../db/dao/projectDao";
 import { CreateProjectDto, UpdateProjectDto } from "../db/dto/projectDto";
 import { ResourceNotFoundError, ServiceError } from "../utils/CustomErrors";
 
 const ProjectService = {
-    async createProject(projectData: CreateProjectDto) {
-        const { project_name, category, description, technologies, link } = projectData;
-        const project = await ProjectDAO.create(
-            project_name,
-            category,
-            description,
-            technologies,
-            link
-        );
-        if (!project) {
-            throw new ServiceError("Project creation failed");
-        }
+  async createProject(projectData: CreateProjectDto) {
+    const { project_name, category, description, technologies, link } = projectData;
 
-        // Invalidate all project caches (both "all" and paginated)
-        await redis.del("projects:all");
-        console.log("⚡ Cache for all projects cleared");
+    const project = await ProjectDAO.create(
+      project_name,
+      category,
+      description,
+      technologies,
+      link
+    );
 
-        return project;
-    },
+    if (!project) {
+      throw new ServiceError("Project creation failed");
+    }
 
-   async getAllProjects(limit: number, offset: number) {
+    // Invalidate all project caches if Redis is connected
+    const redis = getRedis();
+    if (redis) {
+      await redis.del("projects:all");
+      console.log("⚡ Cache for all projects cleared");
+    }
+
+    return project;
+  },
+
+  async getAllProjects(limit: number, offset: number) {
     if (limit <= 0 || offset < 0) {
-        throw new ServiceError("Invalid pagination parameters");
+      throw new ServiceError("Invalid pagination parameters");
     }
 
     const cacheKey = `projects:${limit}:${offset}`;
+    const redis = getRedis();
 
     // 1. Try cache
-    const cached = await redis.get(cacheKey);
-    if (cached) {
+    if (redis) {
+      const cached = await redis.get(cacheKey);
+      if (cached) {
         console.log("⚡ Projects served from Redis cache");
         return JSON.parse(cached);
-        
+      }
+      console.log("❌ Cache Miss");
     }
-    console.log("❌ Cache Miss");
 
     // 2. Fetch from DB
     const [projects, total] = await Promise.all([
-        ProjectDAO.findAll(limit, offset),
-        ProjectDAO.getTotal(),
+      ProjectDAO.findAll(limit, offset),
+      ProjectDAO.getTotal(),
     ]);
 
     if (!projects || projects.length === 0) {
-        throw new ResourceNotFoundError("No projects found");
+      throw new ResourceNotFoundError("No projects found");
     }
 
     // 3. Save to Redis with 60s TTL
-    await redis.set(cacheKey, JSON.stringify(projects), { EX: 60 });
-    console.log("✅ Cached projects under:", cacheKey);
+    if (redis) {
+      await redis.set(cacheKey, JSON.stringify(projects), { EX: 60 });
+      console.log("✅ Cached projects under:", cacheKey);
+    }
 
     const currentPage = Math.floor(offset / limit) + 1;
     const totalPages = Math.ceil(total / limit);
 
     return {
-        projects,
-        total,
-        currentPage,
-        totalPages,
+      projects,
+      total,
+      currentPage,
+      totalPages,
     };
-}
-,
+  },
 
-    async getAllProjectsForAdmin() {
-        const projects = await ProjectDAO.findAllForAdmin();
-        if (!projects || projects.length === 0) {
-            throw new ResourceNotFoundError("No projects found for admin");
-        }
-        return projects;
-    },
-
-    async getProjectById(id: number) {
-        const cacheKey = `project:${id}`;
-
-        const cached = await redis.get(cacheKey);
-        if (cached) {
-            console.log("⚡ Project served from Redis cache");
-            return JSON.parse(cached);
-        }
-
-        const project = await ProjectDAO.findById(id);
-        if (!project) {
-            throw new ResourceNotFoundError(`Project not found`);
-        }
-
-        await redis.set(cacheKey, JSON.stringify(project), { EX: 60 });
-        console.log("✅ Cached project under:", cacheKey);
-
-        return project;
-    },
-
-    async updateProject(id: number, projectData: UpdateProjectDto) {
-        const existing = await ProjectDAO.findById(id);
-        if (!existing) {
-            throw new ResourceNotFoundError(`Project not found`);
-        }
-
-        const { project_name, category, description, technologies, link } = projectData;
-        const update = {
-            project_name: project_name ?? existing.project_name,
-            category: category ?? existing.category,
-            description: description ?? existing.description,
-            technologies: technologies ?? [
-                ...(existing.technologies || []),
-                ...(technologies ? [technologies] : [])
-            ],
-            link: link ?? existing.link,
-            id
-        };
-
-        const updatedProject = await ProjectDAO.update(
-            id,
-            update.project_name,
-            update.category,
-            update.description,
-            update.technologies,
-            update.link
-        );
-
-        if (!updatedProject || updatedProject.length === 0) {
-            throw new ServiceError("Project update failed");
-        }
-
-        // Invalidate project cache
-        await redis.del(`project:${id}`);
-        console.log(`⚡ Cache for project:${id} cleared`);
-
-        return updatedProject;
-    },
-
-    async removeProject(id: number) {
-        const existing = await ProjectDAO.findById(id);
-        if (!existing) {
-            throw new ResourceNotFoundError(`Project not found`);
-        }
-
-        const deletedProject = await ProjectDAO.delete(id);
-        if (!deletedProject || deletedProject.length === 0) {
-            throw new ServiceError("Project deletion failed");
-        }
-
-        // Invalidate caches
-        await redis.del(`project:${id}`);
-        await redis.del("projects:all");
-        console.log(`⚡ Cache cleared for project:${id} and projects:all`);
-
-        return { message: "Project deleted successfully" };
+  async getAllProjectsForAdmin() {
+    const projects = await ProjectDAO.findAllForAdmin();
+    if (!projects || projects.length === 0) {
+      throw new ResourceNotFoundError("No projects found for admin");
     }
+    return projects;
+  },
+
+  async getProjectById(id: number) {
+    const cacheKey = `project:${id}`;
+    const redis = getRedis();
+
+    if (redis) {
+      const cached = await redis.get(cacheKey);
+      if (cached) {
+        console.log("⚡ Project served from Redis cache");
+        return JSON.parse(cached);
+      }
+    }
+
+    const project = await ProjectDAO.findById(id);
+    if (!project) {
+      throw new ResourceNotFoundError(`Project not found`);
+    }
+
+    if (redis) {
+      await redis.set(cacheKey, JSON.stringify(project), { EX: 60 });
+      console.log("✅ Cached project under:", cacheKey);
+    }
+
+    return project;
+  },
+
+  async updateProject(id: number, projectData: UpdateProjectDto) {
+    const existing = await ProjectDAO.findById(id);
+    if (!existing) {
+      throw new ResourceNotFoundError(`Project not found`);
+    }
+
+    const { project_name, category, description, technologies, link } = projectData;
+    const update = {
+      project_name: project_name ?? existing.project_name,
+      category: category ?? existing.category,
+      description: description ?? existing.description,
+      technologies:
+        technologies ??
+        [...(existing.technologies || []), ...(technologies ? [technologies] : [])],
+      link: link ?? existing.link,
+      id,
+    };
+
+    const updatedProject = await ProjectDAO.update(
+      id,
+      update.project_name,
+      update.category,
+      update.description,
+      update.technologies,
+      update.link
+    );
+
+    if (!updatedProject || updatedProject.length === 0) {
+      throw new ServiceError("Project update failed");
+    }
+
+    // Invalidate cache if Redis is connected
+    const redis = getRedis();
+    if (redis) {
+      await redis.del(`project:${id}`);
+      console.log(`⚡ Cache for project:${id} cleared`);
+    }
+
+    return updatedProject;
+  },
+
+  async removeProject(id: number) {
+    const existing = await ProjectDAO.findById(id);
+    if (!existing) {
+      throw new ResourceNotFoundError(`Project not found`);
+    }
+
+    const deletedProject = await ProjectDAO.delete(id);
+    if (!deletedProject || deletedProject.length === 0) {
+      throw new ServiceError("Project deletion failed");
+    }
+
+    // Invalidate caches if Redis is connected
+    const redis = getRedis();
+    if (redis) {
+      await redis.del(`project:${id}`);
+      await redis.del("projects:all");
+      console.log(`⚡ Cache cleared for project:${id} and projects:all`);
+    }
+
+    return { message: "Project deleted successfully" };
+  },
 };
 
 export default ProjectService;
