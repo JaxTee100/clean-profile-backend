@@ -31,7 +31,10 @@ app.get('/', (req: Request, res: Response) => {
   res.send('Hello from Nodemon + TypeScript!');
 });
 
-app.listen(port, () => {
-  connectRedis();
-  console.log(`Server running at http://localhost:${port}`);
-});
+
+(async () => {
+  await connectRedis(); // connect once at startup
+  console.log("🚀 Server starting with Redis ready (if available)");
+
+  app.listen(port, () => console.log(`Server running on port ${port}`));
+})();
