@@ -19,7 +19,7 @@ const ProjectService = {
       throw new ServiceError("Project creation failed");
     }
 
-   
+
     return project;
   },
 
@@ -28,7 +28,7 @@ const ProjectService = {
       throw new ServiceError("Invalid pagination parameters");
     }
 
-    
+
 
     console.log('fetching from db');
 
@@ -41,11 +41,13 @@ const ProjectService = {
     if (!projects || projects.length === 0) {
       throw new ResourceNotFoundError("No projects found");
     }
+    console.log('fetched from db');
 
-  
 
     const currentPage = Math.floor(offset / limit) + 1;
     const totalPages = Math.ceil(total / limit);
+
+    console.log({ currentPage, totalPages, total });
 
     return {
       projects,
@@ -65,7 +67,7 @@ const ProjectService = {
 
   async getProjectById(id: number) {
     const cacheKey = `project:${id}`;
- 
+
 
     const project = await ProjectDAO.findById(id);
     if (!project) {
@@ -107,7 +109,7 @@ const ProjectService = {
       throw new ServiceError("Project update failed");
     }
 
-    
+
 
     return updatedProject;
   },
