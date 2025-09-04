@@ -3,7 +3,6 @@ import express, { Request, Response } from 'express';
 import { errorHandler } from './middleware/errorHandler';
 import projectRoutes from './routes/projectRoutes';
 import cors from 'cors';
-import { connectRedis } from './config/redisClient';
 
 
 dotenv.config();
@@ -31,10 +30,8 @@ app.get('/', (req: Request, res: Response) => {
   res.send('Hello from Nodemon + TypeScript!');
 });
 
+app.listen(port, () => {
+  console.log(`Server running at http://localhost:${port}`);
+});
 
-(async () => {
-  await connectRedis(); // connect once at startup
-  console.log("🚀 Server starting with Redis ready (if available)");
 
-  app.listen(port, () => console.log(`Server running on port ${port}`));
-})();

@@ -1,4 +1,4 @@
-import { getRedis } from "../config/redisClient";
+
 import ProjectDAO from "../db/dao/projectDao";
 import { CreateProjectDto, UpdateProjectDto } from "../db/dto/projectDto";
 import { ResourceNotFoundError, ServiceError } from "../utils/CustomErrors";
@@ -19,14 +19,7 @@ const ProjectService = {
       throw new ServiceError("Project creation failed");
     }
 
-    // Invalidate all project caches if Redis is connected
-    const redis = getRedis();
-    if (redis) {
-      await redis.del("projects:all");
-      console.log("⚡ Cache for all projects cleared");
-    }
-
-    console.log('project created, no redis');
+   
     return project;
   },
 
@@ -35,18 +28,7 @@ const ProjectService = {
       throw new ServiceError("Invalid pagination parameters");
     }
 
-    const cacheKey = `projects:${limit}:${offset}`;
-    const redis = getRedis();
-
-    // 1. Try cache
-    if (redis) {
-      const cached = await redis.get(cacheKey);
-      if (cached) {
-        console.log("⚡ Projects served from Redis cache");
-        return JSON.parse(cached);
-      }
-      console.log("❌ Cache Miss");
-    }
+    
 
     console.log('fetching from db');
 
@@ -60,11 +42,7 @@ const ProjectService = {
       throw new ResourceNotFoundError("No projects found");
     }
 
-    // 3. Save to Redis with 60s TTL
-    if (redis) {
-      await redis.set(cacheKey, JSON.stringify(projects), { EX: 60 });
-      console.log("✅ Cached projects under:", cacheKey);
-    }
+  
 
     const currentPage = Math.floor(offset / limit) + 1;
     const totalPages = Math.ceil(total / limit);
@@ -87,25 +65,13 @@ const ProjectService = {
 
   async getProjectById(id: number) {
     const cacheKey = `project:${id}`;
-    const redis = getRedis();
-
-    if (redis) {
-      const cached = await redis.get(cacheKey);
-      if (cached) {
-        console.log("⚡ Project served from Redis cache");
-        return JSON.parse(cached);
-      }
-    }
+ 
 
     const project = await ProjectDAO.findById(id);
     if (!project) {
       throw new ResourceNotFoundError(`Project not found`);
     }
 
-    if (redis) {
-      await redis.set(cacheKey, JSON.stringify(project), { EX: 60 });
-      console.log("✅ Cached project under:", cacheKey);
-    }
 
     return project;
   },
@@ -141,12 +107,7 @@ const ProjectService = {
       throw new ServiceError("Project update failed");
     }
 
-    // Invalidate cache if Redis is connected
-    const redis = getRedis();
-    if (redis) {
-      await redis.del(`project:${id}`);
-      console.log(`⚡ Cache for project:${id} cleared`);
-    }
+    
 
     return updatedProject;
   },
@@ -162,13 +123,7 @@ const ProjectService = {
       throw new ServiceError("Project deletion failed");
     }
 
-    // Invalidate caches if Redis is connected
-    const redis = getRedis();
-    if (redis) {
-      await redis.del(`project:${id}`);
-      await redis.del("projects:all");
-      console.log(`⚡ Cache cleared for project:${id} and projects:all`);
-    }
+
 
     return { message: "Project deleted successfully" };
   },
