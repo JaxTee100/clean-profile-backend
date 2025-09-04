@@ -39,6 +39,7 @@ const ProjectService = {
     ]);
 
     if (!projects || projects.length === 0) {
+      console.log('No projects found');
       throw new ResourceNotFoundError("No projects found");
     }
     console.log('fetched from db');
