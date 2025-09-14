@@ -107,3 +107,13 @@
 {"0":"1","Endpoint":"Projects Endpoint","level":"info","message":"Deleting project with ID:","timestamp":"2025-09-14T22:42:02.960Z"}
 {"Endpoint":"Projects Endpoint","level":"info","message":"Server running at http://localhost:3001","timestamp":"2025-09-14T22:42:14.002Z"}
 {"0":"1","Endpoint":"Projects Endpoint","level":"info","message":"Deleting project with ID:","timestamp":"2025-09-14T22:42:18.892Z"}
+{"Endpoint":"Projects Endpoint","level":"info","message":"Fetching all projects","query":{"limit":"4","offset":"0"},"timestamp":"2025-09-14T22:44:25.440Z"}
+{"Endpoint":"Projects Endpoint","level":"info","message":"Fetched 4 projects","timestamp":"2025-09-14T22:44:26.572Z"}
+{"Endpoint":"Projects Endpoint","level":"info","message":"Fetching all projects","query":{"limit":"4","offset":"0"},"timestamp":"2025-09-14T22:44:26.600Z"}
+{"Endpoint":"Projects Endpoint","level":"info","message":"Fetched 4 projects","timestamp":"2025-09-14T22:44:27.023Z"}
+{"Endpoint":"Projects Endpoint","level":"info","message":"Fetching all projects","query":{"limit":"4","offset":"0"},"timestamp":"2025-09-14T22:49:05.764Z"}
+{"Endpoint":"Projects Endpoint","level":"info","message":"Fetched 4 projects","timestamp":"2025-09-14T22:49:06.742Z"}
+{"Endpoint":"Projects Endpoint","level":"info","message":"Server running at http://localhost:3001","timestamp":"2025-09-14T23:01:52.086Z"}
+{"Endpoint":"Projects Endpoint","level":"info","message":"Fetching all projects","query":{"limit":"10","offset":"0"},"timestamp":"2025-09-14T23:02:04.583Z"}
+{"Endpoint":"Projects Endpoint","level":"info","message":"Fetched 5 projects (Page 1/1)","timestamp":"2025-09-14T23:02:08.472Z"}
+{"0":"1","Endpoint":"Projects Endpoint","level":"info","message":"Deleting project with ID:","timestamp":"2025-09-14T23:04:23.218Z"}

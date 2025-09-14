@@ -46,37 +46,50 @@ const ProjectController = {
     },
 
     async getAll(req: Request, res: Response) {
-        try {
-            logger.info("Fetching all projects", { query: req.query });
+    try {
+        logger.info("Fetching all projects", { query: req.query });
 
-            const limit = parseInt(req.query.limit as string, 10) || 10;
-            const offset = parseInt(req.query.offset as string, 10) || 0;
+        const limit = parseInt(req.query.limit as string, 10) || 10;
+        const page = parseInt(req.query.page as string, 10) || 1;
+        const offset = (page - 1) * limit;
 
-            const projects = await prisma.project.findMany({
+        // Fetch total count and projects in parallel
+        const [total, projects] = await Promise.all([
+            prisma.project.count(),
+            prisma.project.findMany({
                 skip: offset,
                 take: limit,
                 orderBy: { createdAt: "desc" },
+            }),
+        ]);
+
+        if (projects.length === 0) {
+            logger.warn("No projects found");
+            return res.status(404).json({
+                success: false,
+                message: "No projects found",
             });
-
-            if (projects.length === 0) {
-                logger.warn("No projects found");
-                return res.status(404).json({
-                    success: false,
-                    message: "No projects found",
-                });
-            }
-
-            logger.info(`Fetched ${projects.length} projects`);
-
-            const response = new SuccessResponse("Projects retrieved successfully");
-            response.addDataValues(projects);
-
-            return res.status(200).json(response);
-        } catch (err) {
-            logger.error("Error fetching projects");
-            return res.status(500).json(new ErrorResponse("Failed to fetch projects"));
         }
-    },
+
+        const totalPages = Math.ceil(total / limit);
+
+        logger.info(`Fetched ${projects.length} projects (Page ${page}/${totalPages})`);
+
+        const response = new SuccessResponse("Projects retrieved successfully");
+        response.addDataValues({
+            projects,
+            total,
+            currentPage: page,
+            totalPages,
+        });
+
+        return res.status(200).json(response);
+    } catch (err) {
+        logger.error("Error fetching projects", { error: err });
+        return res.status(500).json(new ErrorResponse("Failed to fetch projects"));
+    }
+},
+
 
 
     async getById(req: Request, res: Response) {
