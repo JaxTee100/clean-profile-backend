@@ -8,7 +8,6 @@ const projectController_1 = __importDefault(require("../controllers/projectContr
 const router = express_1.default.Router();
 router.post('/', projectController_1.default.create);
 router.get('/', projectController_1.default.getAll);
-router.get('/admin', projectController_1.default.getAllForAdmin);
 router.get('/:id', projectController_1.default.getById);
 router.put('/:id', projectController_1.default.update);
 router.delete('/:id', projectController_1.default.delete);

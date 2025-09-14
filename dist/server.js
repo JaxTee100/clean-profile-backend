@@ -1,4 +1,13 @@
 "use strict";
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
@@ -8,16 +17,14 @@ const express_1 = __importDefault(require("express"));
 const errorHandler_1 = require("./middleware/errorHandler");
 const projectRoutes_1 = __importDefault(require("./routes/projectRoutes"));
 const cors_1 = __importDefault(require("cors"));
+const client_1 = require("@prisma/client");
+const logger_1 = require("./utils/logger");
 dotenv_1.default.config();
 const app = (0, express_1.default)();
+const prisma = new client_1.PrismaClient();
 const port = process.env.PORT || 3001;
 // ✅ Correct CORS config for local frontend at localhost:3000
-app.use((0, cors_1.default)({
-    origin: process.env.ORIGIN || 'http://localhost:3000',
-    credentials: true,
-    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization'], // header names only
-}));
+app.use((0, cors_1.default)());
 app.use(express_1.default.json());
 app.use(express_1.default.urlencoded({ extended: true }));
 app.use('/api/projects', projectRoutes_1.default);
@@ -25,6 +32,7 @@ app.use(errorHandler_1.errorHandler);
 app.get('/', (req, res) => {
     res.send('Hello from Nodemon + TypeScript!');
 });
-app.listen(port, () => {
-    console.log(`Server running at http://localhost:${port}`);
-});
+app.listen(port, () => __awaiter(void 0, void 0, void 0, function* () {
+    yield prisma.$connect();
+    logger_1.logger.info(`Server running at http://localhost:${port}`);
+}));
