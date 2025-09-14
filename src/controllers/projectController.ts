@@ -47,7 +47,7 @@ const ProjectController = {
 
     async getAll(req: Request, res: Response) {
         try {
-            logger.info("Fetching all projects", { query: req.query });
+            logger.info("Fetching all projects for production testing", { query: req.query });
 
             const limit = parseInt(req.query.limit as string, 10) || 10;
             const page = parseInt(req.query.page as string, 10) || 1;
