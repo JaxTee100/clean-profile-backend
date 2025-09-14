@@ -46,49 +46,56 @@ const ProjectController = {
     },
 
     async getAll(req: Request, res: Response) {
-    try {
-        logger.info("Fetching all projects", { query: req.query });
+        try {
+            logger.info("Fetching all projects", { query: req.query });
 
-        const limit = parseInt(req.query.limit as string, 10) || 10;
-        const page = parseInt(req.query.page as string, 10) || 1;
-        const offset = (page - 1) * limit;
+            const limit = parseInt(req.query.limit as string, 10) || 10;
+            const page = parseInt(req.query.page as string, 10) || 1;
+            const offset = (page - 1) * limit;
 
-        // Fetch total count and projects in parallel
-        const [total, projects] = await Promise.all([
-            prisma.project.count(),
-            prisma.project.findMany({
-                skip: offset,
-                take: limit,
-                orderBy: { createdAt: "desc" },
-            }),
-        ]);
+            // Fetch total count and projects in parallel
+            const [total, projects] = await Promise.all([
+                prisma.project.count(),
+                prisma.project.findMany({
+                    skip: offset,
+                    take: limit,
+                    orderBy: { createdAt: "desc" },
+                }),
+            ]);
 
-        if (projects.length === 0) {
-            logger.warn("No projects found");
-            return res.status(404).json({
-                success: false,
-                message: "No projects found",
+            if (projects.length === 0) {
+                logger.warn("No projects found");
+                return res.status(404).json({
+                    success: false,
+                    message: "No projects found",
+                });
+            }
+
+            const totalPages = Math.ceil(total / limit);
+
+            logger.info(`Fetched ${projects.length} projects (Page ${page}/${totalPages})`);
+
+            const response = new SuccessResponse("Projects retrieved successfully");
+            response.addDataValues({
+                projects,
+                total,
+                currentPage: page,
+                totalPages,
             });
+            console.log("Projects response structure:", {
+                projects,
+                total,
+                page,
+                totalPages
+            });
+
+
+            return res.status(200).json(response);
+        } catch (err) {
+            logger.error("Error fetching projects", { error: err });
+            return res.status(500).json(new ErrorResponse("Failed to fetch projects"));
         }
-
-        const totalPages = Math.ceil(total / limit);
-
-        logger.info(`Fetched ${projects.length} projects (Page ${page}/${totalPages})`);
-
-        const response = new SuccessResponse("Projects retrieved successfully");
-        response.addDataValues({
-            projects,
-            total,
-            currentPage: page,
-            totalPages,
-        });
-
-        return res.status(200).json(response);
-    } catch (err) {
-        logger.error("Error fetching projects", { error: err });
-        return res.status(500).json(new ErrorResponse("Failed to fetch projects"));
-    }
-},
+    },
 
 
 
@@ -132,7 +139,7 @@ const ProjectController = {
             const { error } = validateUpdateProject(req.body);
             if (error) {
                 logger.error('Validation error:', { error: error.details[0].message });
-                res.status(400).json({  
+                res.status(400).json({
                     success: false,
                     message: `Validation error: ${error.details[0].message}`
                 });
@@ -141,7 +148,7 @@ const ProjectController = {
             let { project_name, category, description, technologies, link } = req.body;
             if (technologies && typeof technologies === "string") {
                 technologies = technologies.split(",").map((t: string) => t.trim());
-            }   
+            }
             const updatedProject = await prisma.project.update({
                 where: { id },
                 data: { project_name, category, description, technologies, link }
@@ -164,7 +171,7 @@ const ProjectController = {
                 where: { id }
             });
             console.log('projectId', projectId);
-            if(!projectId){
+            if (!projectId) {
                 res.status(400).json({
                     success: false,
                     message: "Project not found"
