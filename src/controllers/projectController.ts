@@ -147,6 +147,17 @@ const ProjectController = {
         logger.info('Deleting project with ID:', req.params.id);
         try {
             const id = parseInt(req.params.id, 10);
+            const projectId = await prisma.project.findUnique({
+                where: { id }
+            });
+            console.log('projectId', projectId);
+            if(!projectId){
+                res.status(400).json({
+                    success: false,
+                    message: "Project not found"
+                });
+                return;
+            }
             if (isNaN(id)) {
                 throw new ServiceError("Invalid project ID");
             }
