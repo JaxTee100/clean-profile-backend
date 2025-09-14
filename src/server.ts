@@ -3,21 +3,20 @@ import express, { Request, Response } from 'express';
 import { errorHandler } from './middleware/errorHandler';
 import projectRoutes from './routes/projectRoutes';
 import cors from 'cors';
+import { PrismaClient } from '@prisma/client';
+import { logger } from './utils/logger';
 
 
 dotenv.config();
 const app = express();
+
+const prisma = new PrismaClient();
 const port = process.env.PORT || 3001;
 
 
 
 // ✅ Correct CORS config for local frontend at localhost:3000
-app.use(cors({
-  origin: process.env.ORIGIN || 'http://localhost:3000',
-  credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization'], // header names only
-}));
+app.use(cors());
 
 
 app.use(express.json());
@@ -30,8 +29,10 @@ app.get('/', (req: Request, res: Response) => {
   res.send('Hello from Nodemon + TypeScript!');
 });
 
-app.listen(port, () => {
-  console.log(`Server running at http://localhost:${port}`);
+app.listen(port, async() => {
+  await prisma.$connect();
+  logger.info(`Server running at http://localhost:${port}`);
+
 });
 
 
