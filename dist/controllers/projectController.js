@@ -54,14 +54,19 @@ const ProjectController = {
     getAll(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
-                logger_1.logger.info("Fetching all projects", { query: req.query });
+                logger_1.logger.info("Fetching all projects for production testing", { query: req.query });
                 const limit = parseInt(req.query.limit, 10) || 10;
-                const offset = parseInt(req.query.offset, 10) || 0;
-                const projects = yield prisma.project.findMany({
-                    skip: offset,
-                    take: limit,
-                    orderBy: { createdAt: "desc" },
-                });
+                const page = parseInt(req.query.page, 10) || 1;
+                const offset = (page - 1) * limit;
+                // Fetch total count and projects in parallel
+                const [total, projects] = yield Promise.all([
+                    prisma.project.count(),
+                    prisma.project.findMany({
+                        skip: offset,
+                        take: limit,
+                        orderBy: { createdAt: "desc" },
+                    }),
+                ]);
                 if (projects.length === 0) {
                     logger_1.logger.warn("No projects found");
                     return res.status(404).json({
@@ -69,13 +74,25 @@ const ProjectController = {
                         message: "No projects found",
                     });
                 }
-                logger_1.logger.info(`Fetched ${projects.length} projects`);
+                const totalPages = Math.ceil(total / limit);
+                logger_1.logger.info(`Fetched ${projects.length} projects (Page ${page}/${totalPages})`);
                 const response = new SuccessResponse_1.default("Projects retrieved successfully");
-                response.addDataValues(projects);
+                response.addDataValues({
+                    projects,
+                    total,
+                    currentPage: page,
+                    totalPages,
+                });
+                console.log("Projects response structure:", {
+                    projects,
+                    total,
+                    page,
+                    totalPages
+                });
                 return res.status(200).json(response);
             }
             catch (err) {
-                logger_1.logger.error("Error fetching projects");
+                logger_1.logger.error("Error fetching projects", { error: err });
                 return res.status(500).json(new ErrorResponse_1.default("Failed to fetch projects"));
             }
         });
@@ -148,6 +165,17 @@ const ProjectController = {
             logger_1.logger.info('Deleting project with ID:', req.params.id);
             try {
                 const id = parseInt(req.params.id, 10);
+                const projectId = yield prisma.project.findUnique({
+                    where: { id }
+                });
+                console.log('projectId', projectId);
+                if (!projectId) {
+                    res.status(400).json({
+                        success: false,
+                        message: "Project not found"
+                    });
+                    return;
+                }
                 if (isNaN(id)) {
                     throw new CustomErrors_1.ServiceError("Invalid project ID");
                 }
