@@ -144,3 +144,42 @@
 {"Endpoint":"Projects Endpoint","level":"info","message":"Fetched 1 projects (Page 1/1)","timestamp":"2025-09-14T23:51:26.059Z"}
 {"Endpoint":"Projects Endpoint","level":"info","message":"Fetching all projects for production testing","query":{"limit":"10","offset":"0"},"timestamp":"2025-09-14T23:54:10.990Z"}
 {"Endpoint":"Projects Endpoint","level":"info","message":"Fetched 1 projects (Page 1/1)","timestamp":"2025-09-14T23:54:12.374Z"}
+{"Endpoint":"Projects Endpoint","level":"info","message":"Server running at http://localhost:3001","timestamp":"2025-09-15T08:18:24.742Z"}
+{"Endpoint":"Projects Endpoint","level":"info","message":"Fetching all projects for production testing","query":{"limit":"4","offset":"0"},"timestamp":"2025-09-15T08:22:47.146Z"}
+{"Endpoint":"Projects Endpoint","level":"info","message":"Fetched 1 projects (Page 1/1)","timestamp":"2025-09-15T08:22:50.625Z"}
+{"Endpoint":"Projects Endpoint","level":"info","message":"Fetching all projects for production testing","query":{"limit":"4","offset":"0"},"timestamp":"2025-09-15T08:24:55.009Z"}
+{"Endpoint":"Projects Endpoint","level":"info","message":"Fetched 1 projects (Page 1/1)","timestamp":"2025-09-15T08:24:56.228Z"}
+{"Endpoint":"Projects Endpoint","level":"info","message":"Fetching all projects for production testing","query":{"limit":"4","offset":"0"},"timestamp":"2025-09-15T08:24:56.249Z"}
+{"Endpoint":"Projects Endpoint","level":"info","message":"Fetched 1 projects (Page 1/1)","timestamp":"2025-09-15T08:24:56.706Z"}
+{"Endpoint":"Projects Endpoint","level":"info","message":"Fetching all projects for production testing","query":{"limit":"10","offset":"0"},"timestamp":"2025-09-15T08:25:19.190Z"}
+{"Endpoint":"Projects Endpoint","level":"info","message":"Fetched 1 projects (Page 1/1)","timestamp":"2025-09-15T08:25:20.006Z"}
+{"Endpoint":"Projects Endpoint","category":"backend","description":"A scalable platform for handling customers purchases","level":"info","link":"https://example.com","message":"Creating a new project with data:","project_name":"Scalable Ecommerce Platform","technologies":["typescript","express","docker","redis","rabbitmQ","Winstonn","joi"],"timestamp":"2025-09-15T08:27:57.637Z"}
+{"Endpoint":"Projects Endpoint","level":"info","message":"Project created successfully:","timestamp":"2025-09-15T08:27:59.138Z"}
+{"Endpoint":"Projects Endpoint","level":"info","message":"Fetching all projects for production testing","query":{"limit":"10","offset":"0"},"timestamp":"2025-09-15T08:27:59.314Z"}
+{"Endpoint":"Projects Endpoint","level":"info","message":"Fetched 2 projects (Page 1/1)","timestamp":"2025-09-15T08:28:00.029Z"}
+{"Endpoint":"Projects Endpoint","level":"info","message":"Fetching all projects for production testing","query":{"limit":"4","offset":"0"},"timestamp":"2025-09-15T08:28:24.002Z"}
+{"Endpoint":"Projects Endpoint","level":"info","message":"Fetched 2 projects (Page 1/1)","timestamp":"2025-09-15T08:28:24.980Z"}
+{"Endpoint":"Projects Endpoint","level":"info","message":"Fetching all projects for production testing","query":{"limit":"8","offset":"0"},"timestamp":"2025-09-15T08:29:30.984Z"}
+{"Endpoint":"Projects Endpoint","level":"info","message":"Fetched 2 projects (Page 1/1)","timestamp":"2025-09-15T08:29:31.946Z"}
+{"Endpoint":"Projects Endpoint","level":"info","message":"Fetching all projects for production testing","query":{"limit":"6","offset":"0"},"timestamp":"2025-09-15T08:29:40.845Z"}
+{"Endpoint":"Projects Endpoint","level":"info","message":"Fetched 2 projects (Page 1/1)","timestamp":"2025-09-15T08:29:41.593Z"}
+{"Endpoint":"Projects Endpoint","category":"frontend","description":"A web app for for updating stories on instagram","level":"info","link":"https://example.com","message":"Creating a new project with data:","project_name":"24hr Story Feature ","technologies":["React","Tailwind","Nextjs"],"timestamp":"2025-09-15T08:30:46.386Z"}
+{"Endpoint":"Projects Endpoint","level":"info","message":"Project created successfully:","timestamp":"2025-09-15T08:30:47.238Z"}
+{"Endpoint":"Projects Endpoint","level":"info","message":"Fetching all projects for production testing","query":{"limit":"10","offset":"0"},"timestamp":"2025-09-15T08:30:47.387Z"}
+{"Endpoint":"Projects Endpoint","level":"info","message":"Fetched 3 projects (Page 1/1)","timestamp":"2025-09-15T08:30:48.079Z"}
+{"0":"4","Endpoint":"Projects Endpoint","level":"info","message":"Fetching project with ID:","timestamp":"2025-09-15T08:30:59.053Z"}
+{"Endpoint":"Projects Endpoint","level":"info","message":"Project fetched successfully:","timestamp":"2025-09-15T08:30:59.904Z"}
+{"0":"4","Endpoint":"Projects Endpoint","level":"info","message":"Fetching project with ID:","timestamp":"2025-09-15T08:30:59.924Z"}
+{"Endpoint":"Projects Endpoint","level":"info","message":"Project fetched successfully:","timestamp":"2025-09-15T08:31:00.348Z"}
+{"0":"4","Endpoint":"Projects Endpoint","level":"info","message":"Updating project with ID:","timestamp":"2025-09-15T08:31:12.622Z"}
+{"Endpoint":"Projects Endpoint","level":"info","message":"Project updated successfully:","timestamp":"2025-09-15T08:31:13.546Z"}
+{"Endpoint":"Projects Endpoint","level":"info","message":"Fetching all projects for production testing","query":{"limit":"10","offset":"0"},"timestamp":"2025-09-15T08:31:13.688Z"}
+{"Endpoint":"Projects Endpoint","level":"info","message":"Fetched 3 projects (Page 1/1)","timestamp":"2025-09-15T08:31:14.402Z"}
+{"Endpoint":"Projects Endpoint","level":"info","message":"Fetching all projects for production testing","query":{"limit":"4","offset":"0"},"timestamp":"2025-09-15T08:31:28.922Z"}
+{"Endpoint":"Projects Endpoint","level":"info","message":"Fetched 3 projects (Page 1/1)","timestamp":"2025-09-15T08:31:29.733Z"}
+{"Endpoint":"Projects Endpoint","level":"info","message":"Fetching all projects for production testing","query":{"limit":"4","offset":"0"},"timestamp":"2025-09-15T08:32:59.861Z"}
+{"Endpoint":"Projects Endpoint","level":"info","message":"Fetched 3 projects (Page 1/1)","timestamp":"2025-09-15T08:33:00.989Z"}
+{"Endpoint":"Projects Endpoint","level":"info","message":"Fetching all projects for production testing","query":{"limit":"4","offset":"0"},"timestamp":"2025-09-15T08:33:03.059Z"}
+{"Endpoint":"Projects Endpoint","level":"info","message":"Fetched 3 projects (Page 1/1)","timestamp":"2025-09-15T08:33:03.489Z"}
+{"Endpoint":"Projects Endpoint","level":"info","message":"Fetching all projects for production testing","query":{"limit":"4","offset":"0"},"timestamp":"2025-09-15T08:33:05.126Z"}
+{"Endpoint":"Projects Endpoint","level":"info","message":"Fetched 3 projects (Page 1/1)","timestamp":"2025-09-15T08:33:05.372Z"}
